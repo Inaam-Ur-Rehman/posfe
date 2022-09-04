@@ -16,8 +16,21 @@ import Icon from '@material-ui/core/Icon';
 import SaveIcon from '@material-ui/icons/Save';
 import { useHistory } from 'react-router-dom';
 import api from '../../api/api';
+import { Box, Modal } from '@mui/material';
 // import {Navigate}
 
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
 
 
 
@@ -33,14 +46,45 @@ export default function Form() {
     const [supplierName, setSupplierName] = useState('')
     const [CName, setCName] = useState('');
     const [buyDate, setBuyDate] = useState(new Date())
-    const [productPerCarton, setProductPerCarton] = useState('')
     const [quantity, setQuantity] = useState('')
     const [buyPrice, setBuyPrice] = useState('')
     const [salePrice, setSalePrice] = useState('')
     const [paidAmount, setPaidAmount] = useState('')
     const [AllSupliers, setAllSupliers] = useState([])
 
+    const [modalSpName, setModalSpName] = useState('')
+    const [modalSpAddress, setModalSpAddress] = useState('')
+    const [modalSpPhone, setModalSpPhone] = useState('')
+    const [modalSpEmail, setModalSpEmail] = useState('')
 
+    const handleSupplierSave = async () => {
+        try {
+            if (modalSpName.length < 2 || modalSpAddress.length < 6 || modalSpPhone.length < 10 || modalSpEmail.length < 6) {
+                alert('Please Fill All Fields with valid values')
+                return
+            }
+            const res = await api.post(`supplier/add`, {
+                supplier_name: modalSpName,
+                supplier_email: modalSpEmail,
+                contact_no: modalSpPhone,
+                address: modalSpAddress,
+                previous_balance: 0,
+            });
+            if (res.status === 200) {
+                // RELOAD PAGE
+                window.location.reload();
+            }
+        }
+        catch (e) {
+            alert(e.message)
+            console.log(e);
+        }
+    }
+
+
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
     useEffect(async () => {
         if (history.location.pathname == '/editstock')
@@ -58,7 +102,6 @@ export default function Form() {
             setProductName(data.product_name)
             setSupplierName(data.supplier_name)
             setBuyDate(data.buy_date)
-            setProductPerCarton(data.product_per_carton)
             setQuantity(data.quantity)
             setBuyPrice(data.buy_price)
             setSalePrice(data.sale_price)
@@ -82,7 +125,6 @@ export default function Form() {
             product_name: prodcutName,
             supplier_name: supplierName,
             buy_date: buyDate,
-            product_per_carton: productPerCarton,
             quantity,
             buy_price: buyPrice,
             sale_price: salePrice,
@@ -106,7 +148,6 @@ export default function Form() {
             product_name: prodcutName,
             supplier_name: supplierName,
             buy_date: buyDate,
-            product_per_carton: productPerCarton,
             quantity,
             buy_price: buyPrice,
             sale_price: salePrice,
@@ -116,7 +157,7 @@ export default function Form() {
         if (res.status === 200) {
             alert("Saved successfully");
             // alert(JSON.stringify(res.data))
-            this.props.history.push("/stocklist");
+            history.push("/stocklist");
         } else {
             throw new Error(
                 `Unable to create the record. The status code is ${res.status}`
@@ -164,29 +205,47 @@ export default function Form() {
                 /> */}
 
                 {/* <Grid container xs={6}> */}
-                <Autocomplete
-                    id="combo-box-demo"
-                    options={AllSupliers}
-                    getOptionLabel={(option) => option.supplier_name}
-                    style={{ width: '100%', marginBottom: '10px' }}
-                    onChange={(e, newValue) => {
-                        // alert((newValue.supplier_name))
-                        setSupplierName(newValue.supplier_name)
-                    }}
-                    renderInput={(params) =>
-                        <>
-                            <div ref={params.InputProps.ref} style={{}}>
-                                <Grid container>
-                                    <Grid item xs={3}>Supplier Name</Grid>
-                                    <Grid item xs={9}>
+                <div style={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 10
+                }}>
+                    <Autocomplete
+                        id="combo-box-demo"
+                        options={AllSupliers}
+                        getOptionLabel={(option) => option.supplier_name}
+                        style={{ flex: 1, }}
+                        onChange={(e, newValue) => {
+                            // alert((newValue.supplier_name))
+                            setSupplierName(newValue.supplier_name)
+                        }}
+                        renderInput={(params) =>
+                            <>
+                                <div ref={params.InputProps.ref} style={{
 
-                                        <input style={{ height: 35, width:'100%' }} type="text" placeholder='Supplier Name' {...params.inputProps} />
+                                }}>
+                                    <Grid container>
+                                        <Grid item xs={3}>Supplier Name</Grid>
+                                        <Grid item xs={9}>
+
+                                            <input style={{ height: 35, width: '90%', marginLeft: 20 }} type="text" placeholder='Supplier Name' {...params.inputProps} />
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            </div>
-                        </>
-                    }
-                />
+                                </div>
+                            </>
+                        }
+                    />
+                    <Button variant="contained"
+                        color="primary"
+                        size="small"
+                        className={classes.button}
+                        onClick={handleOpen}
+                    >
+                        Add
+                    </Button>
+                </div>
                 {/* </Grid> */}
                 {/* </Grid> */}
                 {/* <Grid item xs={12}> */}
@@ -206,7 +265,7 @@ export default function Form() {
                 />
                 {/* </Grid> */}
                 {/* <Grid item xs={12} sm={6}> */}
-                <TextField
+                {/* <TextField
                     required
                     id="productpercarton"
                     name="productpercarton"
@@ -218,7 +277,7 @@ export default function Form() {
                     value={productPerCarton}
                     style={{ height: 35, marginBottom: 10 }}
                     onChange={(e) => setProductPerCarton(e.target.value)}
-                />
+                /> */}
                 {/* </Grid> */}
 
                 {/* <Grid item xs={12} sm={6}> */}
@@ -295,6 +354,69 @@ export default function Form() {
 
                 {/* </form> */}
             </Grid>
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                    <Box
+                        component="form"
+                        noValidate
+                        autoComplete="off"
+                        style={{
+                            width: '130%',
+                            margin: 'auto',
+                        }}
+                    >
+                        <TextField required fullWidth={true} value={modalSpName} onChange={(e) => {
+                            setModalSpName(e.target.value)
+                        }} style={{
+                            width: '100%',
+                        }} id="outlined-basic" placeholder="Supplier Name" label="Outlined" variant="outlined" />
+                        <TextField
+                            required
+                            value={modalSpEmail}
+                            onChange={(e) => {
+                                setModalSpEmail(e.target.value)
+                            }}
+                            style={{
+                                width: '100%',
+                            }} id="filled-basic" placeholder="Email" fullWidth inputType="email" label="Filled" variant="filled" />
+                        <TextField
+                            required
+                            value={modalSpPhone}
+                            onChange={(e) => {
+                                setModalSpPhone(e.target.value)
+                            }}
+                            style={{
+                                width: '100%',
+                            }} id="standard-basic" label="Standard" placeholder="Number" inputType="number" variant="standard" />
+                        <TextField
+                            required
+                            value={modalSpAddress}
+                            onChange={(e) => {
+                                setModalSpAddress(e.target.value)
+                            }}
+                            style={{
+                                width: '100%',
+                            }} id="standard-basic" label="Standard" inputType="textarea" placeholder="Address" variant="standard" />
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            className={classes.button}
+                            style={{
+                                maxWidth: 150
+                            }}
+                            onClick={handleSupplierSave}
+                        >
+                            Add Supplier
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
         </React.Fragment>
     );
 }
